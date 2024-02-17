@@ -1,0 +1,32 @@
+spring:
+  cloud:
+    azure:
+      servicebus:
+        connection-string: Endpoint=sb://sprint-boot-asb-demo.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=d99SxuLooLUzAfUCkCzOz8aP9CMqzUZNv+ASbBAL6ZM=
+    function:
+      definition: consume;supply
+    stream:
+      bindings:
+        consume-in-0:
+          destination: orders
+          group: product-orders
+        supply-out-0:
+          destination: deliveries
+          group: product-deliveries
+        supply-out-1:
+          destination: orders
+          group: product-orders
+      poller:
+        fixed-delay: 60000
+        initial-delay: 0
+      servicebus:
+        bindings:
+          consume-in-0:
+            consumer:
+              auto-complete: false
+          supply-out-0:
+            producer:
+              entity-type: topic
+          supply-out-1:
+            producer:
+              entity-type: topic
