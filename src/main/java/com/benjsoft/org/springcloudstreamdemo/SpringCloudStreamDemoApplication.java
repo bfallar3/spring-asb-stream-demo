@@ -38,11 +38,11 @@ public class SpringCloudStreamDemoApplication {
             assert checkpointer != null;
             checkpointer.success()
                     .doOnSuccess(s -> {
-                        LOGGER.info("Message received: {}", message);
+                        LOGGER.info("[consume] Message received: {}", message);
                         sinks.emitNext(MessageBuilder.withPayload(message.getPayload()).build(),
                                 Sinks.EmitFailureHandler.FAIL_FAST);
                     })
-                    .doOnError(e -> LOGGER.error("Error receiving message!"))
+                    .doOnError(e -> LOGGER.error("[consume] Error receiving message!"))
                     .block();
         };
     }
@@ -50,8 +50,8 @@ public class SpringCloudStreamDemoApplication {
     @Bean
     public Supplier<Flux<Message<String>>> supply() {
         return () -> sinks.asFlux()
-                .doOnNext(m -> LOGGER.info("Sending message: {}", m))
-                .doOnError(e -> LOGGER.error("Error sending message!"));
+                .doOnNext(m -> LOGGER.info("[supply] Sending message: {}", m))
+                .doOnError(e -> LOGGER.error("[supply] Error sending message!"));
     }
 
     @Bean
@@ -65,10 +65,13 @@ public class SpringCloudStreamDemoApplication {
     private StreamBridge streamBridge;
 
     @Scheduled(fixedRate = 60000)
-    public void sendRandomOrder() {
+    public void sendRandomOrder() throws InterruptedException {
         for (int i = 0; i < 5; i++) {
             Message<String> message = MessageBuilder.withPayload("Hello from StreamBridge: " + i).build();
+            LOGGER.info("[sendRandomOrder] Sending sample order: {}", message.getPayload());
+
             streamBridge.send("supply-out-1", message);
+            Thread.sleep(500);
         }
     }
 }
